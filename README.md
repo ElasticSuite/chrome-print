@@ -25,3 +25,10 @@ curl \
   -o test.png \
   http://localhost:$port/
 ```
+
+## Attribution
+
+I basically copied and adapted code from [this
+guy](https://medium.com/@dschnr/using-headless-chrome-as-an-automated-screenshot-tool-4b07dffba79a).
+My whole solution is obviously cobbled together from various slapped together
+sources, but it fits my needs.
