@@ -1,9 +1,12 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
-const fs = require('fs');
+const fs = require('fs-extra');
 const tempy = require('tempy');
 const CDP = require('chrome-remote-interface');
+
+const cdpHost = process.env.CHROME_HEADLESS_PORT_9222_TCP_ADDR || 'chrome-headless';
+const cdpPort = process.env.CHROME_HEADLESS_PORT_9222_TCP_PORT || '9222';
 
 function getScreenshot({
   url,
@@ -17,7 +20,8 @@ function getScreenshot({
   return new Promise((resolve, reject) => {
 
     // Start the Chrome Debugging Protocol
-    CDP(function(client) {
+    CDP({host: cdpHost, port: cdpPort}, function(client) {
+
       // Extract used DevTools domains.
       const {DOM, Emulation, Network, Page, Runtime} = client;
 
@@ -70,8 +74,9 @@ app.use(bodyParser.json());
 app.use(fileUpload());
 
 app.get('/', (req, res) => {
-  res.type('text/plain').send(`POST to this URI in this format:
-{html: "<html></html>", width: 100, height: 100}`);
+  res.type('text/plain').send(`Here's a nice curl example of the api:
+curl -F "htmlFile=@test.html" -F "width=800" -F "height=1200" -X POST -H "Content-Type: multipart/form-data" -o result.png http://thisurl/
+    `);
 });
 
 app.post('/', (req, res) => {
@@ -92,17 +97,27 @@ app.post('/', (req, res) => {
       throw err;
     }
 
-    getScreenshot({
-      width,
-      height,
-      delay,
-      url: 'file://' + tmp
-    }).then((data) => {
-      res.status(200).type('image/png').send(data);
-    }).catch((e) => {
-      console.log(e);
-      res.status(500).send('some kind of failure');
+    const newPath = `/printfiles/${tmp.replace(/^.*\/(.*)$/, '$1')}`;
+    fs.move(tmp, newPath, {overwrite: true}, err => {
+      if (err) {
+        console.log(err);
+        res.status(500).send('There was an error.');
+      }
+
+      getScreenshot({
+        width,
+        height,
+        delay,
+        url: 'file://' + newPath
+      }).then((data) => {
+        res.status(200).type('image/png').send(data);
+        fs.remove(newPath);
+      }).catch((e) => {
+        console.log(e);
+        res.status(500).send('some kind of failure');
+      });
     });
+
   })
 });
 

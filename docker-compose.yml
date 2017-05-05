@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+  print:
+    build: .
+    depends_on:
+      - chrome-headless
+    ports:
+      - "8888"
+    environment:
+      NODE_PORT: 8888
+    links:
+      - chrome-headless
+    volumes:
+      - printfiles:/printfiles
+  chrome-headless:
+    image: yukinying/chrome-headless
+    volumes:
+      - printfiles:/printfiles
+
+volumes:
+  printfiles:
