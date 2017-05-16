@@ -1,7 +1,7 @@
 # chrome-print
 
 A headless chrome process with an express-based API in front of it. Upload an
-HTML file, specify width and height, get a png image back.
+HTML file, specify width and height, get a PDF back.
 
 ## Run
 
@@ -18,11 +18,11 @@ port=`docker ps |grep chromeprint_print |sed 's/.*:\([0-9]*\)-.*/\1/'`
 # send the request
 curl \
   -F "htmlFile=@test.html" \
-  -F "width=800" \
-  -F "height=1200" \
+  -F "width=8.5" \
+  -F "height=11" \
   -X POST \
   -H "Content-Type: multipart/form-data" \
-  -o test.png \
+  -o test.pdf \
   http://localhost:$port/
 ```
 
