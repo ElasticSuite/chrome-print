@@ -8,11 +8,11 @@ const CDP = require('chrome-remote-interface');
 const cdpHost = process.env.CHROME_HEADLESS_PORT_9222_TCP_ADDR || 'chrome-headless';
 const cdpPort = process.env.CHROME_HEADLESS_PORT_9222_TCP_PORT || '9222';
 
-function getScreenshot({
+function print({
   url,
   format = 'png',
-  width = 1920,
-  height = 1080,
+  width = 8.5,
+  height = 11,
   delay = 300,
   userAgent = null,
   full = false
@@ -53,7 +53,20 @@ function getScreenshot({
       // Wait for page load event to take screenshot
       Page.loadEventFired(() => {
         setTimeout(() => {
-          Page.captureScreenshot({format}).then((screenshot) => {
+          Page.printToPDF({
+            paperWidth: width,
+            paperHeight: height,
+
+            scale: 1,
+            // landscape: false,
+            displayHeaderFooter: false,
+            printBackground: true,
+            marginTop: 0,
+            marginBottom: 0,
+            marginLeft: 0,
+            marginRight: 0,
+            pageRanges: '1-1',
+          }).then((screenshot) => {
             const buffer = new Buffer(screenshot.data, 'base64');
             client.close();
             resolve(buffer);
@@ -75,7 +88,7 @@ app.use(fileUpload());
 
 app.get('/', (req, res) => {
   res.type('text/plain').send(`Here's a nice curl example of the api:
-curl -F "htmlFile=@test.html" -F "width=800" -F "height=1200" -X POST -H "Content-Type: multipart/form-data" -o result.png http://thisurl/
+curl -F "htmlFile=@test.html" -F "width=8.5" -F "height=11" -X POST -H "Content-Type: multipart/form-data" -o result.pdf http://thisurl/
     `);
 });
 
@@ -104,13 +117,13 @@ app.post('/', (req, res) => {
         res.status(500).send('There was an error.');
       }
 
-      getScreenshot({
+      print({
         width,
         height,
         delay,
         url: 'file://' + newPath
       }).then((data) => {
-        res.status(200).type('image/png').send(data);
+        res.status(200).type('application/pdf').send(data);
         fs.remove(newPath);
       }).catch((e) => {
         console.log(e);
