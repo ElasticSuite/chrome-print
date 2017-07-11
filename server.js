@@ -20,7 +20,10 @@ function print({
   return new Promise((resolve, reject) => {
 
     // Start the Chrome Debugging Protocol
-    CDP({host: cdpHost, port: cdpPort}, function(client) {
+    CDP.New({host: cdpHost, port: cdpPort})
+      .then(target => CDP({target, host: cdpHost, port: cdpPort}))
+      .then(client => {
+
 
       // Extract used DevTools domains.
       const {DOM, Emulation, Network, Page, Runtime} = client;
@@ -69,11 +72,16 @@ function print({
           }).then((screenshot) => {
             const buffer = new Buffer(screenshot.data, 'base64');
             client.close();
-            resolve(buffer);
+            CDP.Close({id: client.target.id, host: cdpHost, port: cdpPort})
+              .then(() => resolve(buffer))
+              .catch(e => reject(e));
           }).catch((e) => reject(e));
         }, delay);
       });
-    }).on('error', err => {
+    }).catch(err => {
+        client.close();
+        reject('test');
+        return;
       reject(err);
     });
 
