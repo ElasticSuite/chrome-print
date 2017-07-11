@@ -79,9 +79,6 @@ function print({
         }, delay);
       });
     }).catch(err => {
-        client.close();
-        reject('test');
-        return;
       reject(err);
     });
 
