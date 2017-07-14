@@ -1,4 +1,3 @@
 #!/bin/bash
-# we're using a separate dedicated container for chrome now, so forget this
-#google-chrome-beta --headless --hide-scrollbars --remote-debugging-port=9222 --disable-gpu --no-sandbox &
-npm run start
+/chrome/headless_shell --no-sandbox --hide-scrollbars --remote-debugging-address=0.0.0.0 --remote-debugging-port=9222 &
+npm start

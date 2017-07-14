@@ -1,20 +1,18 @@
+# multi-stage build new in Docker 17.05 (https://docs.docker.com/engine/userguide/eng-image/multistage-build/)
+FROM yukinying/chrome-headless
 FROM node:6
 
-# below is all the junk to get a full most-recent release of regular chrome beta running locally
+# chrome dependencies
+RUN apt-get update -y && apt-get install -y -q libnss3 libfontconfig && rm -rf /var/lib/apt/lists/*
 
-# chrome deps
-#RUN apt-get update && apt-get upgrade -y && apt-get install -y -q \
-#  gconf-service libasound2 libatk1.0-0 libcups2 libdbus-1-3 libgconf-2-4 libgtk-3-0 \
-#  libnspr4 libnss3 libx11-xcb1 libxss1 fonts-liberation libappindicator1 xdg-utils
-#
-#RUN wget https://dl.google.com/linux/direct/google-chrome-beta_current_amd64.deb && \
-#  dpkg -i google-chrome-beta_current_amd64.deb && \
-#  rm google-chrome-beta_current_amd64.deb
+COPY --from=0 /chrome /chrome
 
 ADD . /server
 WORKDIR /server
 
 RUN npm i
 
-#CMD ["./start.sh"]
+EXPOSE 8888
+
 ENTRYPOINT ["./start.sh"]
+CMD ["/chrome/headless_shell", "--no-sandbox", "--hide-scrollbars", "--remote-debugging-address=0.0.0.0", "--remote-debugging-port=9222"]
